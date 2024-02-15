@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "defaultSchema": "test",
+  "schemas": [
+    {
+      "name": "test",
+      "type": "custom",
+      "factory": "xyz.fteychene.calcite.playground.calcite.SchemaFactory"
+    }
+  ]
+}
