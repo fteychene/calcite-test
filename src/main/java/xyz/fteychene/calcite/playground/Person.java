@@ -22,5 +22,6 @@ public class Person {
     Integer age;
     Double ranking;
     List<String> departments;
+    String teamId;
 
 }

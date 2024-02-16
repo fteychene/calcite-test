@@ -15,17 +15,14 @@ import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.type.SqlTypeName;
 import xyz.fteychene.calcite.playground.Person;
-import xyz.fteychene.calcite.playground.PersonList;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 public class PersonTable extends AbstractTable implements ScannableTable {
     @Override
@@ -36,18 +33,28 @@ public class PersonTable extends AbstractTable implements ScannableTable {
                 .sorted(Comparator.comparing(Schema.Field::pos))
                 .map(field -> Map.entry(field.name().toUpperCase(), switch (field.schema().getType()) {
                     case RECORD -> throw new UnsupportedOperationException("Don't support record type for now");
-                    case ENUM, STRING -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.VARCHAR), field.schema().isNullable());
-                    case ARRAY -> relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.VARCHAR), -1);
+                    case ENUM, STRING ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.VARCHAR), field.schema().isNullable());
+                    case ARRAY ->
+                            relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.VARCHAR), -1);
                     case MAP -> throw new UnsupportedOperationException("Don't support map type for now");
                     case UNION -> throw new UnsupportedOperationException("Don't support union type for now");
-                    case FIXED -> relDataTypeFactory.createSqlType(SqlTypeName.VARBINARY, field.schema().getFixedSize());
-                    case BYTES -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.BINARY), field.schema().isNullable());
-                    case INT -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.INTEGER), field.schema().isNullable());
-                    case LONG -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.BIGINT), field.schema().isNullable());
-                    case FLOAT -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.DECIMAL), field.schema().isNullable());
-                    case DOUBLE -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.DOUBLE), field.schema().isNullable());
-                    case BOOLEAN -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.BOOLEAN), field.schema().isNullable());
-                    case NULL -> relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.NULL), field.schema().isNullable());
+                    case FIXED ->
+                            relDataTypeFactory.createSqlType(SqlTypeName.VARBINARY, field.schema().getFixedSize());
+                    case BYTES ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.BINARY), field.schema().isNullable());
+                    case INT ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.INTEGER), field.schema().isNullable());
+                    case LONG ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.BIGINT), field.schema().isNullable());
+                    case FLOAT ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.DECIMAL), field.schema().isNullable());
+                    case DOUBLE ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.DOUBLE), field.schema().isNullable());
+                    case BOOLEAN ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.BOOLEAN), field.schema().isNullable());
+                    case NULL ->
+                            relDataTypeFactory.createTypeWithNullability(relDataTypeFactory.createSqlType(SqlTypeName.NULL), field.schema().isNullable());
                 }))
                 .forEach(relDataType -> result.add(relDataType.getKey(), relDataType.getValue()));
         return result
@@ -56,12 +63,12 @@ public class PersonTable extends AbstractTable implements ScannableTable {
 
     @Override
     public Enumerable<Object[]> scan(DataContext dataContext) {
-
-        var nioPath = Paths.get("data.json");
-        try (var reader = new FileReader(nioPath.toFile())) {
+        var nioPath = Paths.get("person.json");
+        try {
             var payload = Files.readString(nioPath);
-            ReflectDatumReader<PersonList> datumReader = new ReflectDatumReader<>(PersonList.class);
-            var decoder = DecoderFactory.get().jsonDecoder(ReflectData.get().getSchema(PersonList.class), payload);
+            var schema = Schema.createArray(ReflectData.get().getSchema(Person.class));
+            ReflectDatumReader<List<Person>> datumReader = new ReflectDatumReader<>(schema);
+            var decoder = DecoderFactory.get().jsonDecoder(schema, payload);
             var persons = datumReader.read(null, decoder);
             return new AbstractEnumerable<>() {
                 @Override
@@ -71,13 +78,12 @@ public class PersonTable extends AbstractTable implements ScannableTable {
                             .sorted(Comparator.comparing(Schema.Field::pos))
                             .toList();
 
-                    return Linq4j.enumerator(persons.getValues().stream()
+                    return Linq4j.enumerator(persons.stream()
                             .map(p -> fields.stream().map(field -> ReflectData.get().getField(p, field.name(), field.pos())).toArray())
                             .toList());
                 }
             };
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

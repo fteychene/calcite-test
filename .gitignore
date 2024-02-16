@@ -34,4 +34,5 @@ build/
 ### Mac OS ###
 .DS_Store
 
-data.json
+person.json
+team.json

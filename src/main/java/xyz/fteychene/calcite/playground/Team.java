@@ -5,14 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @With
-@Data
-public class PersonList {
-
-    List<Person> values = new ArrayList<>();
+public class Team {
+    String id;
+    String name;
+    String creature;
+    String state;
+    String sport;
 }
