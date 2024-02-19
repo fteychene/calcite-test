@@ -14,7 +14,7 @@ public class SchemaFactory implements org.apache.calcite.schema.SchemaFactory {
             @Override
             protected Map<String, Table> getTableMap() {
                 return Map.of(
-                        "PERSON", new PersonTable(),
+                        "PERSON", new PersonFilterableTable(),
                         "TEAM", new TeamTable()
                 );
             }

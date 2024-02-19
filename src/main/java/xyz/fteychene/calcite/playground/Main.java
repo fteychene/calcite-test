@@ -26,10 +26,11 @@ public class Main {
             connection = DriverManager.getConnection("jdbc:calcite:", info);
             statement = connection.createStatement();
             final ResultSet resultSet =
+                    statement.executeQuery("SELECT * FROM person p where p.firstname = 'Paul'");
 //                    WHERE p.age > 45 AND p.firstname LIKE 'Je%' AND p.ranking < 30.0 AND CARDINALITY(p.departments) > 0
 //                    statement.executeQuery("SELECT * FROM person p inner join team t on p.teamId = t.id");
 //                    statement.executeQuery("SELECT * FROM team t");
-                    statement.executeQuery("SELECT t.id, t.name, COUNT(p.username) as employees FROM person p inner join team t on p.teamId = t.id GROUP BY t.id, t.name HAVING COUNT(p.username) > 40");
+//                    statement.executeQuery("SELECT t.id, t.name, COUNT(p.username) as employees FROM person p inner join team t on p.teamId = t.id GROUP BY t.id, t.name HAVING COUNT(p.username) > 60");
 
             log.info("Columns : {}", resultSet.getMetaData().getColumnCount());
             log.info(IntStream.range(1, resultSet.getMetaData().getColumnCount()+1).boxed()
